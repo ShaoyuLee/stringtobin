@@ -85,9 +85,32 @@ int main(int argc, char *argv[])
 
 	FILE * outfile, *infile;
 
-	outfile = fopen(argv[2], "wb");
-
 	infile = fopen(argv[1], "rb");
+	if (infile == NULL)
+
+	{
+		printf("%s, %s", argv[1], "no file found, exit\r\n");
+		system("PAUSE");
+		return 2;
+	}
+
+	if (remove(argv[2]) == 0){
+	
+		printf("Removed %s.\r\n", argv[2]);
+	}
+	else{
+		//printf("Remove %s ", argv[2]);
+		//perror("error");
+	}
+
+    printf("create %s \r\n", argv[2]);
+	outfile = fopen(argv[2], "wb+");
+	if (infile == NULL)
+	{
+		printf("%s, %s", argv[2], "no file found, exit\r\n");
+		system("PAUSE");
+		return 2;
+	}
 
 	unsigned char *buf;
 	unsigned char *hex_buf;
@@ -99,7 +122,7 @@ int main(int argc, char *argv[])
 
 	{
 
-		printf("%s, %s", argv[1], "not exit/n");
+		printf("%s, %s", argv[1], "no file exit\r\n");
 
 		system("PAUSE");
 		return 2;
@@ -113,6 +136,12 @@ int main(int argc, char *argv[])
 	while ((rc = fread(buf, sizeof(unsigned char), MAXLEN, infile)) != 0)
 
 	{
+		static count=0;
+		count++;
+		if (count > 100){
+			printf("Too big file, abort convert!\r\n");
+			break;
+		}
 		printf("get file size %d B\r\n", rc);
 		get_hex_len=stringtohex(buf, rc, hex_buf, MAXLEN);
 	    printf("get hex size %d B\r\n", get_hex_len);
