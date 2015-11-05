@@ -70,6 +70,9 @@ int main(int argc, char *argv[])
 
 {
 
+	uint32_t file_size = 0x12345678;
+	uint32_t version = 0x0714;
+	char tempfile[] ="temp.bin";
 	if (argc != 3)
 
 	{
@@ -83,7 +86,24 @@ int main(int argc, char *argv[])
 
 
 
-	FILE * outfile, *infile;
+	FILE * outfile, *infile, *temp;
+
+
+	if (remove(tempfile) == 0)
+	{
+		printf("Removed %s.\r\n", tempfile);
+	}
+	else{
+		//printf("Remove %s ", argv[2]);
+		//perror("error");
+	}
+	temp = fopen(tempfile, "wb+");
+	if (temp==NULL)
+	{
+		printf("temp.bin create error\r\n");
+		system("PAUSE");
+		return 3;
+	}
 
 	infile = fopen(argv[1], "rb");
 	if (infile == NULL)
@@ -94,8 +114,8 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 
-	if (remove(argv[2]) == 0){
-	
+	if (remove(argv[2]) == 0)
+	{
 		printf("Removed %s.\r\n", argv[2]);
 	}
 	else{
@@ -132,7 +152,12 @@ int main(int argc, char *argv[])
 
 	int rc;
 	int get_hex_len;
-
+	uint8_t _0=0;
+	fputs("Ginshell Co,Ltd", outfile);
+	fwrite(&_0, sizeof(_0), sizeof(unsigned char), outfile);
+	fputs("ble", outfile);
+	fwrite(&_0, sizeof(_0), sizeof(unsigned char), outfile);
+	
 	while ((rc = fread(buf, sizeof(unsigned char), MAXLEN, infile)) != 0)
 
 	{
@@ -149,15 +174,39 @@ int main(int argc, char *argv[])
 		{
 			printf("fail\r\n");
 		}
-		fwrite(hex_buf, sizeof(unsigned char), get_hex_len, outfile);
+		fwrite(hex_buf, sizeof(unsigned char), get_hex_len, temp);
 
 	}
 
-	fclose(infile);
+	fseek(temp, 0, SEEK_END); // seek to end of file
+	file_size = ftell(temp); // get current file pointer
+	printf("new file size is %d\r\n",file_size);
+	fseek(temp, 0, SEEK_SET); // seek back to beginning of file
 
+	unsigned char *buf_new;
+
+	buf_new = malloc(file_size);
+	rc = fread(buf_new, sizeof(unsigned char), file_size, temp);
+	if (rc == file_size)
+	{
+		printf("get file ok\r\n");
+	}
+	else
+	{
+		printf("get wrong file\r\n");
+	}
+	fwrite(&version, sizeof(version), sizeof(unsigned char), outfile);
+	fwrite(&file_size, sizeof(file_size), sizeof(unsigned char), outfile);
+	fwrite(buf_new, sizeof(unsigned char), file_size, outfile);
+
+	perror("fwrite");
+
+	fclose(infile);
 	fclose(outfile);
+	fclose(temp);
 	free(buf);
 	free(hex_buf);
+	
 	system("PAUSE");
 
 	return 0;
