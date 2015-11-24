@@ -174,6 +174,19 @@ int main(int argc, char *argv[])
 		{
 			printf("fail\r\n");
 		}
+		else
+		{
+			for (int count = 0; count < get_hex_len; count++)
+			{
+				for (size_t i = 0; i < 2; i++)
+				{
+					uint8_t temp;
+					temp = hex_buf[4 * count + i];
+					hex_buf[4 * count + i] = hex_buf[4 * count + 3- i];
+					hex_buf[4 * count + 3 - i] = temp;
+				}
+			}
+		}
 		fwrite(hex_buf, sizeof(unsigned char), get_hex_len, temp);
 
 	}
